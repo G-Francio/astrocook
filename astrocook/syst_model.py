@@ -13,13 +13,16 @@ import time
 import warnings
 warnings.filterwarnings("ignore")
 
+# from line_profiler import LineProfiler
+# from filprofiler.api import profile
+
 thres = 1e-2
 
 class SystModel(LMComposite):
 
     def __init__(self, spec, systs, series=[], vars=None, constr=None, z0=None,
                  lines_func=lines_voigt,
-                 psf_func=psf_gauss,
+                 psf_func=None,
                  cont_func=None):
         self._spec = spec
         try:
@@ -91,7 +94,6 @@ class SystModel(LMComposite):
             time_end = datetime.datetime.now()
             self._pars = fit.params
             self._ys = self.eval(x=self._xs, params=self._pars)
-            prova = np.where(self._xs<1000)[0]
             #plt.plot(self._xs, self._ys)
             #plt.plot(self._xs[prova], self.eval(x=self._xs[prova], params=self._pars))
             #plt.plot(self._xf, self.eval(x=self._xf, params=self._pars))
@@ -262,7 +264,6 @@ class SystModel(LMComposite):
             w = np.unique(w)
             self._xl = x[w]
 
-        #print(self.__dict__)
         ys = self._lines.eval(x=self._xs, params=self._pars)
         yl = self._lines.eval(x=self._xl, params=self._pars)
         if np.abs(np.min(ys)-np.min(yl))>thres and np.min(yl) > 1-thres:
@@ -458,7 +459,7 @@ class SystModel(LMComposite):
         if time_check:
             print('b %.4f' % (time.time()-tt))
             tt = time.time()
-        psf = LMModel(self._psf_func, prefix=self._psf_pref, spec=self._spec)
+        psf = LMModel(self._psf_func, prefix=self._psf_pref)
         if time_check:
             print('c %.4f' % (time.time()-tt))
             tt = time.time()
@@ -662,9 +663,6 @@ class SystModel(LMComposite):
                    defs=None, N_tot=False, N_tot_specs=(None, None, None)):
 
 
-        #if resol == None:
-        #    self._resol = self._spec.t['resol'][len(self._spec.t)//2]
-        #else:
         self._resol = resol
         self._series = series
 
